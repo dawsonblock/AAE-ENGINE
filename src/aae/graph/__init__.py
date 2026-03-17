@@ -1,6 +1,6 @@
 # Backward compatibility - imports from new location
 # This module has been moved to src.aae.analysis.graph
-from src.aae.analysis.graph import (
+from aae.analysis.graph import (
     alias_resolver,
     ast_parser,
     call_graph_builder,

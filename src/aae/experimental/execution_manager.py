@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import shlex
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -160,9 +161,9 @@ class ExecutionManager:
         )
 
     async def _run_local(self, req: ExecRequest) -> ExecResult:
-        command = self._build_command(req)
-        proc = await asyncio.create_subprocess_shell(
-            command,
+        args = self._build_args(req)
+        proc = await asyncio.create_subprocess_exec(
+            *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -199,3 +200,20 @@ class ExecutionManager:
             escaped = code.replace("'", "'\\''")
             return f"python -c '{escaped}'"
         return "echo unknown"
+
+    @staticmethod
+    def _build_args(req: ExecRequest) -> list[str]:
+        """Build a safe argument list for subprocess execution without shell."""
+        if req.kind == "test":
+            test_ids = req.payload.get("test_ids", [])
+            return ["python", "-m", "pytest", *test_ids, "-x", "--tb=short"]
+        if req.kind == "script":
+            return ["python", str(req.payload.get("script_path", ""))]
+        if req.kind == "command":
+            # shlex.split avoids shell interpretation; callers must only pass
+            # trusted command strings since arbitrary command execution is
+            # inherently privileged.
+            return shlex.split(req.payload.get("command", "echo done"))
+        if req.kind == "code":
+            return ["python", "-c", req.payload.get("code", "")]
+        return ["echo", f"unknown request kind: {req.kind}"]
