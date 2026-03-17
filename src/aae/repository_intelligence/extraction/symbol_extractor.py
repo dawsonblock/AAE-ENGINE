@@ -35,6 +35,10 @@ class SymbolExtractor:
             log.debug("SymbolExtractor failed for %s: %s", path, exc)
             return []
 
+    def extract_from_file(self, path: Path | str) -> List[Symbol]:
+        """Alias for :meth:`extract_file` accepting str or Path."""
+        return self.extract_file(Path(path))
+
     def extract_source(
         self, source: str, filename: str = "<string>"
     ) -> List[Symbol]:

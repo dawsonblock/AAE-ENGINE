@@ -65,8 +65,12 @@ class FileParser:
         self._root = repo_root or Path(".")
         self._max_bytes = max_size_kb * 1024
 
-    def parse_file(self, path: Path) -> ParsedFile:
-        rel = str(path.relative_to(self._root)) if path.is_absolute() else str(path)
+    def parse_file(self, path: Path | str) -> ParsedFile:
+        path = Path(path)
+        rel = str(path.relative_to(self._root)) if (
+            path.is_absolute()
+            and str(path).startswith(str(self._root))
+        ) else str(path)
         lang = _EXT_LANG.get(path.suffix.lower(), "text")
         try:
             if path.stat().st_size > self._max_bytes:
@@ -82,9 +86,11 @@ class FileParser:
             return ParsedFile(path=rel, language=lang, content="", error=str(exc))
 
     def parse_directory(
-        self, root: Optional[Path] = None, extensions: Optional[List[str]] = None
+        self,
+        root: Path | str | None = None,
+        extensions: Optional[List[str]] = None,
     ) -> List[ParsedFile]:
-        scan_root = root or self._root
+        scan_root = Path(root) if root is not None else self._root
         exts = frozenset(extensions or list(_EXT_LANG.keys()))
         files = []
         for p in scan_root.rglob("*"):

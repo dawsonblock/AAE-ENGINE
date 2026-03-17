@@ -17,6 +17,12 @@ class QueryResult:
     total: int = 0
     source: str = "full_text"   # "full_text" | "vector" | "graph"
 
+    def __len__(self) -> int:
+        return len(self.hits)
+
+    def __iter__(self):
+        return iter(self.hits)
+
     def top(self, n: int = 5) -> List[Dict]:
         return self.hits[:n]
 

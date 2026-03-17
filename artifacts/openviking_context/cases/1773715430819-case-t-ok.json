@@ -1,0 +1,12 @@
+{
+  "category": "cases",
+  "content": "User focus: no user content. Tool activity: deep_research.",
+  "created_at": 1773715430.8196218,
+  "metadata": {
+    "objective": "research architecture",
+    "selected_tool": "deep_research",
+    "session_id": "t-ok",
+    "status": "executed"
+  },
+  "title": "case-t-ok"
+}

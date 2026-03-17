@@ -43,7 +43,7 @@ class RemediationPlan:
         return [a for a in self.actions if a.automated]
 
     def to_markdown(self) -> str:
-        lines = ["# Remediation Plan", ""]
+        lines = ["## Remediation Plan", ""]
         for action in self.actions:
             auto = "✅ Auto" if action.automated else "🔧 Manual"
             lines.append(

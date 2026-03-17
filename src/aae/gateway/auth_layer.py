@@ -55,12 +55,24 @@ class AuthLayer:
 
     # ── public API ────────────────────────────────────────────────────────────
 
-    def authenticate(self, token: Optional[str]) -> Dict[str, str]:
-        """Validate *token* and return an identity dict.
+    def authenticate(
+        self, token: Optional[str]
+    ) -> Optional[Dict[str, str]]:
+        """Validate *token* and return an identity dict (or ``None``).
 
-        Returns ``{"sub": "<subject>", "type": "apikey"|"jwt"|"anon"}``.
-        Raises ``AuthError`` on failure.
+        Returns ``{"sub": "<subject>", "type": "apikey"|"jwt"|"anon"}``
+        on success, or ``None`` when credentials are invalid / missing.
+        (Raises ``AuthError`` are caught internally.)
         """
+        try:
+            return self._authenticate_inner(token)
+        except AuthError:
+            return None
+
+    def _authenticate_inner(
+        self, token: Optional[str]
+    ) -> Dict[str, str]:
+        """Raise ``AuthError`` on failure (internal use)."""
         if self.no_auth:
             return {"sub": "anonymous", "type": "anon"}
 

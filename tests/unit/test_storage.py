@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import AsyncMock
 
 
 # ---------------------------------------------------------------------------
@@ -100,7 +99,7 @@ class TestPostgresStore:
 
     @pytest.mark.asyncio
     async def test_kv_set_and_get_fallback(self):
-        """When pool is None (no Postgres), kv ops are no-ops; verify graceful."""
+        """When pool is None (no Postgres), kv ops are no-ops; graceful."""
         from aae.storage.postgres_store import PostgresStore
         store = PostgresStore(dsn="postgresql://test@localhost/test")
         # pool is None → methods return without error

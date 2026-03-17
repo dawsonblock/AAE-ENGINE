@@ -5,10 +5,7 @@ ordering + payload fidelity. No external services required (JSONL only).
 """
 from __future__ import annotations
 
-import asyncio
-import json
 import pytest
-from pathlib import Path
 
 
 class TestEventReplay:
@@ -28,7 +25,7 @@ class TestEventReplay:
             {"type": "task_completed", "task_id": "t1", "seq": 2},
         ]
         for ev in events:
-            await event_store.append(ev)
+            event_store.append(ev)  # sync
 
         replayed = await event_store.replay()
         assert len(replayed) == 3
@@ -43,7 +40,7 @@ class TestEventReplay:
             "file": "src/main.py",
             "lines_changed": 5,
         }
-        await event_store.append(payload)
+        event_store.append(payload)  # sync
         replayed = await event_store.replay()
         assert len(replayed) == 1
         assert replayed[0]["file"] == "src/main.py"
@@ -56,12 +53,9 @@ class TestEventReplay:
 
     @pytest.mark.asyncio
     async def test_replay_multiple_batches(self, event_store):
-        # Simulate writes across two separate "sessions"
-        await event_store.append({"type": "a", "seq": 0})
-        await event_store.append({"type": "b", "seq": 1})
-
-        # Second "session": same file, more appends
-        await event_store.append({"type": "c", "seq": 2})
+        event_store.append({"type": "a", "seq": 0})
+        event_store.append({"type": "b", "seq": 1})
+        event_store.append({"type": "c", "seq": 2})
 
         replayed = await event_store.replay()
         assert len(replayed) == 3
@@ -70,10 +64,12 @@ class TestEventReplay:
 
     @pytest.mark.asyncio
     async def test_replay_filter_by_type(self, event_store):
-        await event_store.append({"type": "task_created", "task_id": "t1"})
-        await event_store.append({"type": "task_started", "task_id": "t1"})
-        await event_store.append({"type": "task_created", "task_id": "t2"})
+        event_store.append({"type": "task_created", "task_id": "t1"})
+        event_store.append({"type": "task_started", "task_id": "t1"})
+        event_store.append({"type": "task_created", "task_id": "t2"})
 
         all_events = await event_store.replay()
-        created = [ev for ev in all_events if ev["type"] == "task_created"]
+        created = [
+            ev for ev in all_events if ev["type"] == "task_created"
+        ]
         assert len(created) == 2

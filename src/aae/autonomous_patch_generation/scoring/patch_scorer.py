@@ -53,6 +53,26 @@ class PatchScorer:
         test_run=None,
         simulation=None,
         coverage_delta: float = 0.0,
+        test_outcome=None,   # alias for test_run
+    ) -> float:
+        """Return composite score as a float in [0, 1].
+
+        Use :meth:`score_detailed` when you need the full
+        :class:`PatchScore` breakdown.
+        """
+        if test_run is None and test_outcome is not None:
+            test_run = test_outcome
+        return self.score_detailed(
+            patch_id, test_run=test_run,
+            simulation=simulation, coverage_delta=coverage_delta,
+        ).total
+
+    def score_detailed(
+        self,
+        patch_id: str,
+        test_run=None,
+        simulation=None,
+        coverage_delta: float = 0.0,
     ) -> PatchScore:
         ps = PatchScore(patch_id=patch_id)
 
@@ -73,9 +93,6 @@ class PatchScorer:
         ps.coverage_delta = max(-1.0, min(1.0, coverage_delta))
 
         # Size penalty (prefer small patches)
-        diff_lines = 0
-        if hasattr(simulation, "patch_id"):
-            pass  # no diff size available here
         ps.size_penalty = 0.0
 
         ps.total = round(

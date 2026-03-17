@@ -31,7 +31,7 @@ class TestStaticAnalyzer:
         findings = analyzer.scan_file(str(f))
         assert len(findings) >= 1
         severities = {fn.get("severity") for fn in findings}
-        assert severities & {"HIGH", "CRITICAL", "MEDIUM", "LOW"}
+        assert severities & {"high", "critical", "medium", "low"}
 
     def test_scan_hardcoded_secret(self, tmp_path):
         from aae.security_analysis.static_analysis.analyzer import StaticAnalyzer
@@ -60,7 +60,7 @@ class TestRiskScorer:
     def test_score_high_severity(self):
         from aae.security_analysis.scoring.risk_scoring import RiskScorer
         scorer = RiskScorer()
-        findings = [{"severity": "CRITICAL", "cvss": 9.8}]
+        findings = [{"severity": "critical", "cvss": 9.8}]
         score = scorer.score(findings)
         assert score > 5.0
 
@@ -68,9 +68,9 @@ class TestRiskScorer:
         from aae.security_analysis.scoring.risk_scoring import RiskScorer
         scorer = RiskScorer()
         findings = [
-            {"severity": "HIGH", "cvss": 7.5},
-            {"severity": "MEDIUM", "cvss": 5.0},
-            {"severity": "LOW", "cvss": 2.0},
+            {"severity": "high", "cvss": 7.5},
+            {"severity": "medium", "cvss": 5.0},
+            {"severity": "low", "cvss": 2.0},
         ]
         score = scorer.score(findings)
         assert score > 0.0
@@ -89,25 +89,25 @@ class TestSeverityClassifier:
         from aae.security_analysis.scoring.severity_classifier import SeverityClassifier
         clf = SeverityClassifier()
         sev = clf.classify({"cvss": 9.5})
-        assert sev == "CRITICAL"
+        assert sev == "critical"
 
     def test_classify_high(self):
         from aae.security_analysis.scoring.severity_classifier import SeverityClassifier
         clf = SeverityClassifier()
         sev = clf.classify({"cvss": 7.5})
-        assert sev == "HIGH"
+        assert sev == "high"
 
     def test_classify_medium(self):
         from aae.security_analysis.scoring.severity_classifier import SeverityClassifier
         clf = SeverityClassifier()
         sev = clf.classify({"cvss": 5.0})
-        assert sev == "MEDIUM"
+        assert sev == "medium"
 
     def test_classify_low(self):
         from aae.security_analysis.scoring.severity_classifier import SeverityClassifier
         clf = SeverityClassifier()
         sev = clf.classify({"cvss": 2.0})
-        assert sev == "LOW"
+        assert sev == "low"
 
 
 # ---------------------------------------------------------------------------

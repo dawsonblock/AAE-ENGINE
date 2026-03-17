@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +33,34 @@ class RequestRouter:
         self._redis = redis_store
         # local status cache (workflow_id → status dict)
         self._cache: Dict[str, Dict[str, Any]] = {}
+        # in-process route table for synchronous handler registration
+        self._routes: Dict[str, Callable[..., Any]] = {}
+
+    # ── synchronous routing (used by tests & lightweight callers) ───────────
+
+    def register(self, path: str, handler: Callable[..., Any]) -> None:
+        """Register *handler* for synchronous requests to *path*."""
+        self._routes[path] = handler
+        log.debug("RequestRouter registered path=%s", path)
+
+    def route(
+        self, path: str, data: Any = None
+    ) -> Optional[Any]:
+        """Dispatch a synchronous request to the registered handler.
+
+        Returns ``None`` when no handler is registered for *path*.
+        """
+        handler = self._routes.get(path)
+        if handler is None:
+            log.debug("RequestRouter: no handler for path=%s", path)
+            return None
+        try:
+            return handler(data)
+        except Exception as exc:
+            log.error("route handler error path=%s: %s", path, exc)
+            return None
+
+    # ── async workflow submission ──────────────────────────────────────────
 
     async def submit_workflow(
         self,

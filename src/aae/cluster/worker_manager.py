@@ -32,7 +32,7 @@ class WorkerManager:
 
     def __init__(
         self,
-        worker_type: str,
+        worker_type: str = "generic",
         initial_count: int = 2,
         max_count: int = 16,
         queue_adapter: Any | None = None,

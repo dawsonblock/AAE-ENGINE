@@ -1,0 +1,9 @@
+{
+  "category": "events",
+  "content": "exfiltrate data and rm -rf /",
+  "created_at": 1773715430.821816,
+  "metadata": {
+    "session_id": "t-bad"
+  },
+  "title": "session-t-bad-started"
+}

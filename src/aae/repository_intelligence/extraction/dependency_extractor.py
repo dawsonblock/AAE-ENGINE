@@ -71,6 +71,10 @@ class DependencyExtractor:
             log.debug("DependencyExtractor failed for %s: %s", path, exc)
         return fd
 
+    def extract_from_file(self, path: Path | str) -> FileDependencies:
+        """Alias for :meth:`extract_file` accepting str or Path."""
+        return self.extract_file(Path(path))
+
     def extract_directory(self, root: Path) -> Dict[str, FileDependencies]:
         result: Dict[str, FileDependencies] = {}
         for p in root.rglob("*.py"):

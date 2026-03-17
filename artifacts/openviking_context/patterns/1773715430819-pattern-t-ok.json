@@ -1,0 +1,10 @@
+{
+  "category": "patterns",
+  "content": "When objective resembles 'deep_research', collect short user intent, run a bounded action, and persist artifacts plus a compact summary. Observed tool events: 1.",
+  "created_at": 1773715430.819732,
+  "metadata": {
+    "selected_tool": "deep_research",
+    "session_id": "t-ok"
+  },
+  "title": "pattern-t-ok"
+}

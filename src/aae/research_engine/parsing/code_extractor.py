@@ -20,6 +20,11 @@ class CodeSnippet:
         if not self.line_count:
             self.line_count = self.content.count("\n") + 1
 
+    @property
+    def code(self) -> str:
+        """Alias for :attr:`content` (backward-compat accessor)."""
+        return self.content
+
 
 class CodeExtractor:
     """Extract code snippets from Markdown or plain text documents.

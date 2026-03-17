@@ -80,14 +80,14 @@ class TestLoadBalancer:
         from aae.cluster.load_balancer import LoadBalancer
         lb = LoadBalancer(strategy="round_robin")
         workers = ["w1", "w2", "w3"]
-        selected = [lb.select(workers) for _ in range(6)]
+        selected = [lb.pick(workers) for _ in range(6)]
         # All workers should appear at least once
         assert set(selected) == {"w1", "w2", "w3"}
 
     def test_select_from_empty(self):
         from aae.cluster.load_balancer import LoadBalancer
         lb = LoadBalancer(strategy="round_robin")
-        result = lb.select([])
+        result = lb.pick([])
         assert result is None
 
 

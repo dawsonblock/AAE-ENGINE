@@ -19,6 +19,11 @@ class Insight:
     tags: List[str] = field(default_factory=list)
     insight_type: str = "general"  # "finding" | "recommendation" | "definition"
 
+    @property
+    def kind(self) -> str:
+        """Alias for :attr:`insight_type`."""
+        return self.insight_type
+
 
 class InsightExtractor:
     """Extract key insights from document segments using heuristics.
@@ -28,12 +33,16 @@ class InsightExtractor:
     """
 
     _FINDING_PATTERNS = [
+        re.compile(r"^Finding:\s*", re.I),
         re.compile(r"\bwe (found|show|demonstrate|prove|observe)\b", re.I),
         re.compile(r"\bresults? (show|indicate|suggest|reveal)\b", re.I),
         re.compile(r"\bin (this|our) (paper|work|study)\b", re.I),
     ]
     _RECOMMENDATION_PATTERNS = [
-        re.compile(r"\b(recommend|suggest|advise|propose|should|must)\b", re.I),
+        re.compile(r"^Recommendation:\s*", re.I),
+        re.compile(
+            r"\b(recommend|suggest|advise|propose|should|must)\b", re.I
+        ),
         re.compile(r"\bbest practice\b", re.I),
     ]
     _DEFINITION_PATTERNS = [

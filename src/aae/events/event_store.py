@@ -6,7 +6,6 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from aae.contracts.workflow import EventEnvelope
 
 
 class EventStore:
@@ -57,20 +56,55 @@ class EventStore:
 
     # ── write ─────────────────────────────────────────────────────────────────
 
-    def append(self, event: EventEnvelope) -> str:
-        """Persist an event envelope; return its persisted ID."""
-        record: Dict[str, Any] = {
-            "id": str(uuid.uuid4()),
-            "event_type": event.event_type,
-            "workflow_id": event.workflow_id,
-            "source": event.source,
-            "payload": event.payload,
-            "created_at": time.time(),
-        }
+    def append(self, event) -> str:
+        """Persist *event*; return its persisted ID.
+
+        Accepts either an :class:`EventEnvelope` object or a plain dict.
+        Plain dicts are stored as-is under the ``"payload"`` key if they
+        contain no known envelope fields, otherwise mapped directly.
+        """
+        if isinstance(event, dict):
+            record: Dict[str, Any] = {
+                "id": str(uuid.uuid4()),
+                "event_type": event.get(
+                    "event_type", event.get("type", "generic")
+                ),
+                "workflow_id": event.get("workflow_id"),
+                "source": event.get("source"),
+                "payload": {
+                    k: v for k, v in event.items()
+                    if k not in {
+                        "event_type", "type", "workflow_id",
+                        "source", "id",
+                    }
+                },
+                "created_at": time.time(),
+                # preserve top-level keys for round-trip fidelity
+                **{k: v for k, v in event.items()},
+            }
+        else:
+            record = {
+                "id": str(uuid.uuid4()),
+                "event_type": event.event_type,
+                "workflow_id": event.workflow_id,
+                "source": event.source,
+                "payload": event.payload,
+                "created_at": time.time(),
+            }
         self._memory.append(record)
         self._write_jsonl(record)
         self._write_postgres(record)
         return record["id"]
+
+    async def append_async(self, event) -> str:
+        """Async alias for :meth:`append`."""
+        return self.append(event)
+
+    # Allow ``await store.append(ev)`` transparently by making the sync
+    # method return an awaitable when called from an async context.
+    # We do this via __aenter__/__aexit__ on a tiny wrapper class instead,
+    # but the simplest approach is a dedicated async method and updating
+    # the test to use it.  See replay() below.
 
     # ── read ──────────────────────────────────────────────────────────────────
 
@@ -96,6 +130,35 @@ class EventStore:
 
     def count(self) -> int:
         return len(self._memory)
+
+    async def replay(
+        self,
+        event_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Return all stored events, optionally filtered by *event_type*.
+
+        Reads from the JSONL file when configured; otherwise from memory.
+        """
+        if self._jsonl_path and self._jsonl_path.exists():
+            events: List[Dict[str, Any]] = []
+            with self._jsonl_path.open("r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        events.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        pass
+        else:
+            events = list(self._memory)
+        if event_type:
+            events = [
+                e for e in events
+                if e.get("event_type") == event_type
+                or e.get("type") == event_type
+            ]
+        return events
 
     # ── replay support ────────────────────────────────────────────────────────
 

@@ -1,0 +1,10 @@
+{
+  "category": "patterns",
+  "content": "When objective resembles 'none', collect short user intent, run a bounded action, and persist artifacts plus a compact summary. Observed tool events: 0.",
+  "created_at": 1773715430.823147,
+  "metadata": {
+    "selected_tool": "none",
+    "session_id": "t-bad"
+  },
+  "title": "pattern-t-bad"
+}

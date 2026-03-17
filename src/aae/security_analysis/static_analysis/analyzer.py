@@ -89,8 +89,8 @@ class StaticAnalyzer:
         ]
         self._use_bandit = use_bandit
 
-    def scan_file(self, path: Path | str) -> AnalysisResult:
-        """Scan a single Python file and return findings."""
+    def _scan_file_internal(self, path: Path | str) -> AnalysisResult:
+        """Scan a single Python file and return an AnalysisResult."""
         path = Path(path)
         result = AnalysisResult(files_scanned=1)
         try:
@@ -102,11 +102,31 @@ class StaticAnalyzer:
             result.errors.append(f"{path}: {exc}")
         return result
 
+    def scan_file(self, path: Path | str) -> List[Dict]:
+        """Scan a single Python file; return findings as a list of dicts.
+
+        Severity values are returned in the original lowercase form used
+        internally ("critical", "high", "medium", "low", "info").
+        """
+        result = self._scan_file_internal(path)
+        return [
+            {
+                "rule_id": f.rule_id,
+                "severity": f.severity,
+                "file": f.file,
+                "line": f.line,
+                "message": f.message,
+                "code_snippet": f.code_snippet,
+                "cwe": f.cwe,
+            }
+            for f in result.findings
+        ]
+
     def scan_directory(self, root: Path, glob: str = "**/*.py") -> AnalysisResult:
         """Scan all Python files under *root*."""
         combined = AnalysisResult()
         for path in root.glob(glob):
-            r = self.scan_file(path)
+            r = self._scan_file_internal(path)
             combined.findings.extend(r.findings)
             combined.files_scanned += r.files_scanned
             combined.errors.extend(r.errors)

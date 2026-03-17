@@ -104,7 +104,9 @@ class DocumentParser:
                 para_lines = []
         _flush(para_lines)
 
-        title = segments[0].content if segments and segments[0].segment_type == "heading" else ""
+        title = ""
+        if segments and segments[0].segment_type == "heading":
+            title = segments[0].content
         return ParsedDocument(source_url=url, title=title, segments=segments)
 
     def parse_plain(self, text: str, url: str = "") -> ParsedDocument:
@@ -121,7 +123,20 @@ class DocumentParser:
                 )
         return ParsedDocument(source_url=url, segments=segments)
 
-    def parse(self, text: str, url: str = "", fmt: str = "auto") -> ParsedDocument:
-        if fmt == "markdown" or (fmt == "auto" and text.strip().startswith("#")):
-            return self.parse_markdown(text, url)
-        return self.parse_plain(text, url)
+    def parse(
+        self,
+        text: str,
+        url: str = "",
+        fmt: str = "auto",
+        source_url: str = "",
+    ) -> ParsedDocument:
+        """Parse *text* into a :class:`ParsedDocument`.
+
+        ``source_url`` is accepted as an alias for ``url``.
+        """
+        resolved_url = source_url or url
+        if fmt == "markdown" or (
+            fmt == "auto" and text.strip().startswith("#")
+        ):
+            return self.parse_markdown(text, resolved_url)
+        return self.parse_plain(text, resolved_url)

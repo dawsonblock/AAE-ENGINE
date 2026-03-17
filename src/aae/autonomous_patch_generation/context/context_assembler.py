@@ -52,9 +52,10 @@ class ContextAssembler:
         self,
         repo_root: Optional[Path] = None,
         max_tokens: int = _MAX_TOKENS,
+        token_budget: Optional[int] = None,   # alias for max_tokens
     ) -> None:
         self._root = repo_root or Path(".")
-        self._max_tokens = max_tokens
+        self._max_tokens = token_budget if token_budget is not None else max_tokens
 
     def build(
         self,

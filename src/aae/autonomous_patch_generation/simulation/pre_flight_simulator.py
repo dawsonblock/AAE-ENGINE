@@ -14,11 +14,25 @@ log = logging.getLogger(__name__)
 class SimulationResult:
     """Result of a pre-flight simulation on a generated patch."""
 
-    patch_id: str
-    safe_to_apply: bool
-    issues: List[str] = field(default_factory=list)
+    patch_id: str = ""
+    passed: bool = True          # True = safe to apply
+    checks: List[str] = field(default_factory=list)    # blocking issues
     warnings: List[str] = field(default_factory=list)
     risk_score: float = 0.0    # 0 = safe, 1 = very risky
+
+    # ── backward-compat aliases ────────────────────────────────────────────
+
+    @property
+    def safe_to_apply(self) -> bool:  # type: ignore[override]
+        return self.passed
+
+    @safe_to_apply.setter
+    def safe_to_apply(self, value: bool) -> None:
+        self.passed = value
+
+    @property
+    def issues(self) -> List[str]:  # type: ignore[override]
+        return self.checks
 
 
 class PreFlightSimulator:
@@ -57,7 +71,7 @@ class PreFlightSimulator:
             diff_text = getattr(patch, "diff", "")
             patch_id = getattr(patch, "patch_id", "<unknown>")
 
-        result = SimulationResult(patch_id=patch_id, safe_to_apply=True)
+        result = SimulationResult(patch_id=patch_id, passed=True)
 
         if not diff_text.strip():
             result.safe_to_apply = False
