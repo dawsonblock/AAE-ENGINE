@@ -1,13 +1,14 @@
+import { LayoutDashboard, Play, BarChart2, Settings } from "lucide-react";
 import * as Switch from "@radix-ui/react-switch";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 
 import { useUiStore } from "@/state/ui-store";
 
 const nav = [
-  { to: "/", label: "Overview" },
-  { to: "/launch", label: "Launch Workflow" },
-  { to: "/benchmarks", label: "Benchmarks" },
-  { to: "/settings", label: "Settings" },
+  { to: "/", label: "Overview", icon: LayoutDashboard },
+  { to: "/launch", label: "Launch Workflow", icon: Play },
+  { to: "/benchmarks", label: "Benchmarks", icon: BarChart2 },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function DashboardLayout() {
@@ -39,8 +40,11 @@ export function DashboardLayout() {
                       : "panel-muted text-ink-700 hover:border-signal-blue/30 hover:text-ink-900 dark:text-ink-100 dark:hover:text-white"
                   }`}
                 >
-                  <span>{item.label}</span>
-                  <span className="font-mono text-xs">{item.to === "/" ? "00" : item.to.replace("/", "").slice(0, 2).toUpperCase()}</span>
+                  <div className="flex items-center gap-3">
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </div>
+                  <span className="font-mono text-xs opacity-50">{item.to === "/" ? "00" : item.to.replace("/", "").slice(0, 2).toUpperCase()}</span>
                 </Link>
               );
             })}

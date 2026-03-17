@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { Activity, Settings, Plus, LayoutDashboard } from "lucide-react";
 
 import { MetricCard } from "@/components/metric-card";
 import { StatusBadge } from "@/components/status-badge";
@@ -24,9 +25,13 @@ export function OverviewScreen() {
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="panel-muted p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Recent Workflows</h2>
-            <Link to="/launch" className="text-sm font-medium text-signal-blue">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <Activity className="h-5 w-5 text-signal-blue" />
+              Recent Workflows
+            </h2>
+            <Link to="/launch" className="group flex items-center gap-1 text-sm font-medium text-signal-blue transition-colors hover:text-signal-blue/80">
               Launch new
+              <Plus className="h-4 w-4 transition-transform group-hover:scale-110" />
             </Link>
           </div>
           <div className="space-y-3">
@@ -49,9 +54,13 @@ export function OverviewScreen() {
 
         <section className="panel-muted p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">System Diagnostics</h2>
-            <Link to="/settings" className="text-sm font-medium text-signal-blue">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <LayoutDashboard className="h-5 w-5 text-signal-blue" />
+              System Diagnostics
+            </h2>
+            <Link to="/settings" className="group flex items-center gap-1 text-sm font-medium text-signal-blue transition-colors hover:text-signal-blue/80">
               Runtime settings
+              <Settings className="h-4 w-4 transition-transform group-hover:rotate-45" />
             </Link>
           </div>
           <div className="space-y-3">

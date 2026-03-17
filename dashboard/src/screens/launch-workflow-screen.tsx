@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { Play, RotateCcw, AlertCircle, FileCode2, Target, GitBranch, Search } from "lucide-react";
 
 import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api";
@@ -58,7 +59,10 @@ export function LaunchWorkflowScreen() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-sm font-medium">Workflow</span>
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <FileCode2 className="h-4 w-4 text-ink-500" />
+              Workflow
+            </span>
             <select
               className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-white/5"
               value={draft.workflow}
@@ -72,7 +76,10 @@ export function LaunchWorkflowScreen() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium">Repository Path / URL</span>
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <GitBranch className="h-4 w-4 text-ink-500" />
+              Repository Path / URL
+            </span>
             <input
               className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-white/5"
               value={draft.repo_url}
@@ -83,9 +90,12 @@ export function LaunchWorkflowScreen() {
         </div>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Goal</span>
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <Target className="h-4 w-4 text-ink-500" />
+            Goal
+          </span>
           <textarea
-            className="min-h-28 w-full rounded-xl border border-ink-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-white/5"
+            className="min-h-[120px] w-full rounded-xl border border-ink-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-white/5"
             value={draft.goal}
             onChange={(event) => setDraft((current) => ({ ...current, goal: event.target.value }))}
             placeholder="Describe the repair goal or engineering task."
@@ -93,7 +103,10 @@ export function LaunchWorkflowScreen() {
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Research Query</span>
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <Search className="h-4 w-4 text-ink-500" />
+            Research Query
+          </span>
           <input
             className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-white/5"
             value={draft.query}
@@ -103,16 +116,18 @@ export function LaunchWorkflowScreen() {
         </label>
 
         <div className="flex flex-wrap gap-4 text-sm">
-          <label className="inline-flex items-center gap-2">
+          <label className="inline-flex items-center gap-2 text-ink-700 dark:text-ink-200">
             <input
+              className="accent-signal-blue"
               checked={draft.include_research}
               onChange={(event) => setDraft((current) => ({ ...current, include_research: event.target.checked }))}
               type="checkbox"
             />
             Include research
           </label>
-          <label className="inline-flex items-center gap-2">
+          <label className="inline-flex items-center gap-2 text-ink-700 dark:text-ink-200">
             <input
+              className="accent-signal-blue"
               checked={draft.include_post_audit}
               onChange={(event) => setDraft((current) => ({ ...current, include_post_audit: event.target.checked }))}
               type="checkbox"
@@ -122,20 +137,24 @@ export function LaunchWorkflowScreen() {
         </div>
 
         {errors.length > 0 ? (
-          <div className="rounded-xl border border-signal-red/20 bg-signal-red/10 px-4 py-3 text-sm text-signal-red">
-            {errors.map((error) => (
-              <div key={error}>{error}</div>
-            ))}
+          <div className="flex items-start gap-3 rounded-xl border border-signal-red/20 bg-signal-red/10 px-4 py-3 text-sm text-signal-red">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              {errors.map((error) => (
+                <div key={error}>{error}</div>
+              ))}
+            </div>
           </div>
         ) : null}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pt-2">
           <button
             type="button"
             onClick={submit}
             disabled={mutation.isPending}
-            className="rounded-xl bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-700 disabled:opacity-60 dark:bg-white dark:text-ink-900"
+            className="flex items-center gap-2 rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-700 disabled:opacity-60 dark:bg-white dark:text-ink-900"
           >
+            <Play className="h-4 w-4" />
             {mutation.isPending ? "Launching…" : "Launch workflow"}
           </button>
           <button
@@ -144,8 +163,9 @@ export function LaunchWorkflowScreen() {
               setDraft(initialDraft);
               setErrors([]);
             }}
-            className="rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-medium dark:border-white/10"
+            className="flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-medium transition hover:bg-ink-50 dark:border-white/10 dark:hover:bg-white/5"
           >
+            <RotateCcw className="h-4 w-4" />
             Reset
           </button>
         </div>

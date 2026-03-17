@@ -3,6 +3,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import React from "react";
+import { XSquare, Clock, Cpu, Code2, Copy, FileJson, FileTerminal } from "lucide-react";
 
 import { JsonView } from "@/components/json-view";
 import { StatusBadge } from "@/components/status-badge";
@@ -68,27 +69,41 @@ export function WorkflowDetailScreen() {
               <StatusBadge key={level} value={level} />
             ))}
           </div>
-          <h2 className="mt-3 text-2xl font-semibold">{summary.workflow_type}</h2>
-          <div className="mt-2 font-mono text-sm text-ink-500 dark:text-ink-300">{summary.workflow_id}</div>
+          <h2 className="mt-3 flex items-center gap-2 text-2xl font-semibold">
+            <Cpu className="h-6 w-6 text-signal-blue" />
+            {summary.workflow_type}
+          </h2>
+          <div className="mt-2 flex items-center gap-2 font-mono text-sm text-ink-500 dark:text-ink-300">
+            <Copy className="h-3 w-3" />
+            {summary.workflow_id}
+          </div>
         </div>
         <button
           type="button"
           onClick={() => cancelMutation.mutate()}
-          className="rounded-xl border border-signal-red/30 px-4 py-2.5 text-sm font-medium text-signal-red"
+          className="group flex items-center gap-2 rounded-xl border border-signal-red/30 px-4 py-2.5 text-sm font-medium text-signal-red transition-colors hover:bg-signal-red/10"
         >
+          <XSquare className="h-4 w-4 transition-transform group-hover:scale-110" />
           Cancel workflow
         </button>
       </header>
 
       <Tabs.Root defaultValue="timeline" className="space-y-4">
         <Tabs.List className="flex flex-wrap gap-2">
-          {["timeline", "localization", "patch", "sandbox", "memory"].map((tab) => (
+          {[
+            { id: "timeline", icon: Clock },
+            { id: "localization", icon: Code2 },
+            { id: "patch", icon: FileJson },
+            { id: "sandbox", icon: FileTerminal },
+            { id: "memory", icon: Cpu }
+          ].map((tab) => (
             <Tabs.Trigger
-              key={tab}
-              value={tab}
-              className="rounded-xl border border-ink-200/80 px-3 py-2 text-sm font-medium data-[state=active]:bg-ink-900 data-[state=active]:text-white dark:border-white/10 dark:data-[state=active]:bg-white dark:data-[state=active]:text-ink-900"
+              key={tab.id}
+              value={tab.id}
+              className="group flex flex-1 items-center justify-center gap-2 rounded-xl border border-ink-200/80 px-3 py-2 text-sm font-medium transition-all data-[state=active]:bg-ink-900 data-[state=active]:text-white dark:border-white/10 dark:data-[state=active]:bg-white dark:data-[state=active]:text-ink-900 sm:flex-none"
             >
-              {tab}
+              <tab.icon className="h-4 w-4 opacity-70 transition-opacity group-data-[state=active]:opacity-100" />
+              {tab.id.charAt(0).toUpperCase() + tab.id.slice(1)}
             </Tabs.Trigger>
           ))}
         </Tabs.List>

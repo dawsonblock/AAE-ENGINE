@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Play, BarChart3, History } from "lucide-react";
 
 import { MetricCard } from "@/components/metric-card";
 import { StatusBadge } from "@/components/status-badge";
@@ -20,7 +21,10 @@ export function BenchmarksScreen() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold">Benchmarks</h2>
+          <h2 className="flex items-center gap-2 text-2xl font-semibold">
+            <BarChart3 className="h-6 w-6 text-signal-blue" />
+            Benchmarks
+          </h2>
           <p className="mt-2 text-sm text-ink-600 dark:text-ink-200">
             Strict metrics exclude degraded local fallback runs. Raw metrics stay visible for debugging.
           </p>
@@ -29,8 +33,9 @@ export function BenchmarksScreen() {
           type="button"
           onClick={() => runMutation.mutate()}
           disabled={runMutation.isPending}
-          className="rounded-xl bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-ink-900"
+          className="flex items-center gap-2 rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-700 disabled:opacity-60 dark:bg-white dark:text-ink-900"
         >
+          <Play className="h-4 w-4" />
           {runMutation.isPending ? "Running…" : "Run corpus"}
         </button>
       </div>
@@ -44,7 +49,10 @@ export function BenchmarksScreen() {
       </div>
 
       <section className="panel-muted p-5">
-        <h3 className="text-lg font-semibold">Historical Reports</h3>
+        <h3 className="flex items-center gap-2 text-lg font-semibold">
+          <History className="h-5 w-5 text-signal-blue" />
+          Historical Reports
+        </h3>
         <div className="mt-4 space-y-3">
           {(benchmarks.data?.reports ?? []).map((report) => (
             <div key={report.run_id} className="rounded-xl border border-ink-200/70 px-4 py-3 dark:border-white/10">
