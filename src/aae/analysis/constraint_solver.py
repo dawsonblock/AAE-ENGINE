@@ -4,9 +4,11 @@ class ConstraintSolver:
     def solve_off_by_one(self):
         """Simple Example: Checks for numeric boundary feasibility."""
         x = Int("x")
+        bound = Int("bound")
         s = Solver()
         s.add(x > 0, x < 100)
-        s.add(Or(x == x + 1, x == x - 1))
+        s.add(bound == 100)
+        s.add(Or(x + 1 == bound, x - 1 == bound))
         if s.check() == sat:
             return s.model()
         return None
