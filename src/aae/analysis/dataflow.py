@@ -11,7 +11,7 @@ class DataFlowAnalyzer:
                     if isinstance(target, ast.Name):
                         defs.setdefault(target.id, []).append(node.lineno)
 
-            if isinstance(node, ast.Name):
+            if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
                 uses.setdefault(node.id, []).append(node.lineno)
 
         return {"defs": defs, "uses": uses}
