@@ -1,42 +1,38 @@
-ERROR: file or directory not found: tests/test_agent.py
+# Test Baseline
 
-============================= test session starts ==============================
-platform darwin -- Python 3.12.8, pytest-9.0.2, pluggy-1.6.0
-rootdir: /Users/dawsonblock/Downloads/ai_autonomous_engineering-main 2
-configfile: pyproject.toml
-plugins: anyio-4.12.1, cov-7.0.0
-collected 0 items
+This document describes how to reproduce the project’s test baseline without committing
+environment-specific logs or local paths.
 
-=============================== warnings summary ===============================
-../../.pyenv/versions/3.12.8/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
-  /Users/dawsonblock/.pyenv/versions/3.12.8/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
-  
-    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+## How to run the tests
 
-../../.pyenv/versions/3.12.8/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
-  /Users/dawsonblock/.pyenv/versions/3.12.8/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_mode
-  
-    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+From the project root:
 
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-============================= 2 warnings in 0.01s ==============================
-Python 3.12.8
-Package                 Version         Editable project location
------------------------ --------------- ------------------------------------------------------
-aiohappyeyeballs        2.6.1
-aiohttp                 3.13.3
-aiosignal               1.4.0
-annotated-types         0.7.0
-anyio                   4.12.1
-attrs                   25.4.0
-beautifulsoup4          4.14.3
-boolean.py              5.0
-CacheControl            0.14.4
-cbor2                   5.8.0
-certifi                 2026.1.4
-cfgv                    3.5.0
-chardet                 5.2.0
-charset-normalizer      3.4.4
+```bash
+pytest
+```
+
+## Expected outcome
+
+- All tests should collect and run successfully.
+- The test run should complete without unexpected errors.
+- Any known, acceptable warnings (for example, about deprecated options) should be
+  documented here rather than by pasting full warning stacks.
+
+Example of a stable baseline description:
+
+- Python version: a supported version listed in this project’s documentation
+- Test command: `pytest`
+- Summary: `N passed, 0 failed` (exact counts may vary as tests are added or removed)
+
+## Environment notes
+
+- Avoid committing full `pytest` logs, `pip list` output, or absolute local paths
+  (such as those under a home directory) into version control.
+- If detailed logs are needed for debugging or CI, store them as build artifacts
+  or add them to `.gitignore` instead of documenting them verbatim here.
+
+This file is intended to provide a concise, reproducible description of how to run
+the tests and what success looks like, independent of any one developer’s machine.
 click                   8.3.1
 coverage                7.13.3
 cyclonedx-python-lib    11.6.0
