@@ -1,17 +1,21 @@
+from aae.contracts.workflow import EventEnvelope
+
+
 class CommitCoordinator:
     def __init__(self, event_bus):
         """Rule 1 & 5: Central coordinator for valid result promotion."""
         self.event_bus = event_bus
 
-    def publish_promotion(self, task_id, repo_id, agent_id, payload):
+    async def publish_promotion(self, task_id, repo_id, agent_id, payload):
         """Emits event signaling valid and approved repair candidate."""
-        return self.event_bus.publish(
-            "candidate_promoted",
-            task_id,
-            repo_id,
-            agent_id,
-            payload
+        envelope = EventEnvelope(
+            event_type="candidate_promoted",
+            workflow_id=repo_id,
+            task_id=task_id,
+            source=agent_id,
+            payload=payload,
         )
+        await self.event_bus.publish(envelope)
 
     def verify_success(self, task_id, repo_id, evaluation):
         """Hooks for root agent final approval before PR creation."""
