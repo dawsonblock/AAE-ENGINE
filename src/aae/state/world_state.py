@@ -21,4 +21,4 @@ class WorldState:
             }
 
     def snapshot(self):
-        return dict(self._state)
+        return copy.deepcopy(self._state)
