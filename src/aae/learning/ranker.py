@@ -8,4 +8,4 @@ class AdaptiveRanker:
         }
 
     def score(self, features):
-        return sum(self.weights[k] * features[k] for k in features)
+        return sum(weight * features.get(name, 0.0) for name, weight in self.weights.items())
