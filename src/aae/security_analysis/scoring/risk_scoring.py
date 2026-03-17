@@ -80,6 +80,10 @@ class RiskScorer:
         """Score static-analysis findings (rule_id, severity, …)."""
         return self.score_vulns(findings)  # same scoring logic
 
+    def score(self, findings: List[Dict]) -> float:
+        """Convenience wrapper: score findings and return raw float (0-10)."""
+        return self.score_findings(findings).raw_score
+
     def aggregate(self, *scores: RiskScore) -> RiskScore:
         """Combine multiple :class:`RiskScore` objects into one."""
         if not scores:

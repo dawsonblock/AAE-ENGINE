@@ -24,6 +24,18 @@ class PatchContext:
     related_code: List[str] = field(default_factory=list)
     token_count: int = 0
 
+    def to_prompt(self) -> str:
+        """Render this context as a prompt string (delegates to assembler)."""
+        parts = [f"Goal: {self.goal}\n"]
+        if self.error_message:
+            parts.append(f"Error: {self.error_message}\n")
+        if self.failing_tests:
+            tests = "\n".join(f"  - {t}" for t in self.failing_tests)
+            parts.append(f"Failing tests:\n{tests}\n")
+        for path, content in self.file_contents.items():
+            parts.append(f"\n### {path}\n```python\n{content}\n```")
+        return "\n".join(parts)
+
 
 class ContextAssembler:
     """Assemble a :class:`PatchContext` from raw inputs.
@@ -43,6 +55,17 @@ class ContextAssembler:
     ) -> None:
         self._root = repo_root or Path(".")
         self._max_tokens = max_tokens
+
+    def build(
+        self,
+        goal: str,
+        file_paths: Optional[List[str]] = None,
+        target_files: Optional[List[str]] = None,
+        **kwargs,
+    ) -> PatchContext:
+        """Alias for :meth:`assemble` accepting *file_paths* as a kwarg."""
+        files = file_paths or target_files or []
+        return self.assemble(goal=goal, target_files=files, **kwargs)
 
     def assemble(
         self,

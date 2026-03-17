@@ -49,10 +49,18 @@ class PatchValidator:
         test_run=None,
         score=None,
     ) -> ValidationResult:
-        result = ValidationResult(patch_id=patch.patch_id)
+        # Accept both a patch object and a raw diff string
+        if isinstance(patch, str):
+            diff_text = patch
+            patch_id = "<inline>"
+        else:
+            diff_text = getattr(patch, "diff", "")
+            patch_id = getattr(patch, "patch_id", "<unknown>")
+
+        result = ValidationResult(patch_id=patch_id)
 
         # Gate 1: empty patch
-        if not patch.diff.strip():
+        if not diff_text.strip():
             result.reasons.append("Patch diff is empty")
             return result
 

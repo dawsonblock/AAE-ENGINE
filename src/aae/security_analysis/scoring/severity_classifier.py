@@ -81,11 +81,21 @@ class SeverityClassifier:
         return "low"
 
     def classify(
-        self, cvss: Optional[float] = None, text: Optional[str] = None
+        self, cvss_or_finding=None, text: Optional[str] = None,
+        cvss: Optional[float] = None,
     ) -> str:
-        """Classify with CVSS taking precedence over text heuristics."""
+        """Classify with CVSS taking precedence over text heuristics.
+
+        Accepts either a CVSS float, a dict with a ``cvss`` key, or free text.
+        """
+        # Support dict input: classify({"cvss": 9.5})
+        if isinstance(cvss_or_finding, dict):
+            cvss = cvss_or_finding.get("cvss", cvss)
+            text = text or cvss_or_finding.get("summary") or cvss_or_finding.get("message")
+        elif isinstance(cvss_or_finding, (int, float)):
+            cvss = float(cvss_or_finding)
         if cvss is not None:
-            return self.classify_cvss(cvss)
+            return self.classify_cvss(float(cvss))
         if text:
             return self.classify_text(text)
         return "medium"

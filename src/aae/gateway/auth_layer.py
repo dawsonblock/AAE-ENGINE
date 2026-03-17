@@ -39,11 +39,17 @@ class AuthLayer:
 
     def __init__(
         self,
-        api_keys: Set[str] | None = None,
+        api_keys: Set[str] | Dict[str, str] | None = None,
         jwt_secret: Optional[str] = None,
         no_auth: bool = False,
     ) -> None:
-        self._keys: Set[str] = api_keys or set()
+        # Support both a plain set of keys and a {key: identity} dict
+        if isinstance(api_keys, dict):
+            self._keys: Set[str] = set(api_keys.keys())
+            self._key_identities: Dict[str, str] = dict(api_keys)
+        else:
+            self._keys = api_keys or set()
+            self._key_identities = {}
         self._jwt_secret = jwt_secret
         self.no_auth = no_auth
 
@@ -70,7 +76,11 @@ class AuthLayer:
             if hmac.compare_digest(
                 token.encode(), key.encode()
             ):
-                return {"sub": f"apikey:{_sha8(key)}", "type": "apikey"}
+                # If a {key: identity} mapping was provided, return identity
+                identity = self._key_identities.get(key)
+                if identity is not None:
+                    return identity  # type: ignore[return-value]
+                return {"sub": f"apikey:{_sha8(key)}", "type": "apikey"}  # type: ignore[return-value]
 
         # Try JWT
         if self._jwt_secret:

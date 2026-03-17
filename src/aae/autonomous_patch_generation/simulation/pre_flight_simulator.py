@@ -44,16 +44,28 @@ class PreFlightSimulator:
         self._max_del = max_deletions
 
     def simulate(self, patch) -> SimulationResult:
-        """Simulate *patch* (a :class:`GeneratedPatch`) and return result."""
-        result = SimulationResult(patch_id=patch.patch_id, safe_to_apply=True)
+        """Simulate *patch* and return a :class:`SimulationResult`.
 
-        if not patch.diff.strip():
+        *patch* may be either a :class:`GeneratedPatch` object (with ``.diff``
+        and ``.patch_id`` attributes) or a raw unified-diff string.
+        """
+        # Accept both a patch object and a raw diff string
+        if isinstance(patch, str):
+            diff_text = patch
+            patch_id = "<inline>"
+        else:
+            diff_text = getattr(patch, "diff", "")
+            patch_id = getattr(patch, "patch_id", "<unknown>")
+
+        result = SimulationResult(patch_id=patch_id, safe_to_apply=True)
+
+        if not diff_text.strip():
             result.safe_to_apply = False
             result.issues.append("Patch diff is empty")
             result.risk_score = 1.0
             return result
 
-        added_lines, removed_lines = self._parse_diff(patch.diff)
+        added_lines, removed_lines = self._parse_diff(diff_text)
 
         # Check deletion count
         if len(removed_lines) > self._max_del:
@@ -64,7 +76,7 @@ class PreFlightSimulator:
             result.risk_score = 0.8
 
         # Syntax check added Python lines
-        py_added = [l for l in added_lines if not l.startswith("#")]
+        py_added = [ln for ln in added_lines if not ln.startswith("#")]
         if py_added:
             joined = "\n".join(py_added)
             try:

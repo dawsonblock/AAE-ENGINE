@@ -42,29 +42,42 @@ class RISQueryEngine:
         vec_indexer=None,
         graph=None,
         embed_fn=None,
+        # convenience alias used in tests / scripts
+        full_text_indexer=None,
     ) -> None:
-        self._ft = ft_indexer
+        self._ft = full_text_indexer or ft_indexer
         self._vec = vec_indexer
         self._graph = graph
         self._embed = embed_fn
 
-    def search_text(self, query: str, top_k: int = 10) -> QueryResult:
+    async def search_text(self, query: str, top_k: int = 10) -> QueryResult:
         """Full-text search using the inverted index."""
         if self._ft is None:
             return QueryResult(query=query, source="full_text")
         raw = self._ft.search(query, top_k=top_k)
         hits = []
-        for doc_id, score in raw:
-            doc = self._ft.get_doc(doc_id)
-            hits.append(
-                {
-                    "doc_id": doc_id,
-                    "score": round(score, 4),
-                    "file": doc.file if doc else "",
-                    "snippet": (doc.content[:200] if doc else ""),
-                }
-            )
-        return QueryResult(query=query, hits=hits, total=len(hits), source="full_text")
+        for item in raw:
+            # Support both SearchResult objects and raw (doc_id, score) tuples
+            if hasattr(item, "doc_id"):
+                doc_id, score = item.doc_id, item.score
+                file_ = getattr(item, "file", "")
+                snippet = getattr(item, "snippet", "")
+            else:
+                doc_id, score = item[0], item[1]
+                doc = self._ft.get_doc(doc_id) if hasattr(
+                    self._ft, "get_doc"
+                ) else None
+                file_ = doc.file if doc else ""
+                snippet = doc.content[:200] if doc else ""
+            hits.append({
+                "doc_id": doc_id,
+                "score": round(score, 4),
+                "file": file_,
+                "snippet": snippet,
+            })
+        return QueryResult(
+            query=query, hits=hits, total=len(hits), source="full_text"
+        )
 
     def search_vector(
         self, query: str, top_k: int = 10
@@ -118,11 +131,11 @@ class RISQueryEngine:
             query=symbol, hits=hits, total=len(hits), source="graph"
         )
 
-    def hybrid_search(
+    async def hybrid_search(
         self, query: str, top_k: int = 10
     ) -> QueryResult:
         """Merge full-text and vector results via reciprocal rank fusion."""
-        ft_result = self.search_text(query, top_k=top_k)
+        ft_result = await self.search_text(query, top_k=top_k)
         vec_result = self.search_vector(query, top_k=top_k)
         rrf_scores: Dict[str, float] = {}
         for rank, hit in enumerate(ft_result.hits):

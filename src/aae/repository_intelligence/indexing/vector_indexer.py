@@ -1,6 +1,7 @@
 """repository_intelligence/indexing/vector_indexer — vector similarity index."""
 from __future__ import annotations
 
+import hashlib
 import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
@@ -79,11 +80,15 @@ class VectorIndexer:
     def _upsert_qdrant(self, doc: VectorDocument) -> None:
         try:
             from qdrant_client.models import PointStruct
+            # Use a stable, deterministic hash (Python's hash() is salted)
+            stable_id = int(
+                hashlib.md5(doc.doc_id.encode()).hexdigest(), 16
+            ) & 0xFFFF_FFFF
             self._qdrant.upsert(
                 collection_name=self._collection,
                 points=[
                     PointStruct(
-                        id=hash(doc.doc_id) & 0xFFFFFFFF,
+                        id=stable_id,
                         vector=doc.embedding,
                         payload={"doc_id": doc.doc_id, "file": doc.file},
                     )

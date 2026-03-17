@@ -45,6 +45,16 @@ class ArtifactStore:
 
     # ── write ─────────────────────────────────────────────────────────────────
 
+    async def write(
+        self, name: str, content: bytes | str, **kwargs
+    ) -> str:
+        """Convenience alias for :meth:`store`. Returns SHA-256 key."""
+        return await self.store(content, **kwargs)
+
+    async def read(self, sha: str) -> Optional[bytes]:
+        """Convenience alias for :meth:`load`. Returns raw bytes or None."""
+        return self.load(sha)
+
     async def store(
         self,
         content: bytes | str,

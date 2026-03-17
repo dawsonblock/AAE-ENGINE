@@ -67,6 +67,22 @@ class LoadBalancer:
     def set_weight(self, worker_type: str, weight: float) -> None:
         self._weights[worker_type] = weight
 
+    def pick(self, workers: List[str]) -> Optional[str]:
+        """Synchronous selection from an explicit *workers* list.
+
+        Uses the balancer's strategy.  Useful for in-process routing
+        where no async queue-depth data is needed.
+        """
+        if not workers:
+            return None
+        if self.strategy == "random":
+            return random.choice(workers)
+        # round-robin via index
+        idx = getattr(self, "_rr_idx", 0)
+        result = workers[idx % len(workers)]
+        self._rr_idx = idx + 1  # type: ignore[attr-defined]
+        return result
+
     async def status(self) -> Dict[str, Any]:
         depths = await self._depths()
         return {

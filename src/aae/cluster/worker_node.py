@@ -67,20 +67,36 @@ class WorkerNode:
         task_callback: Optional[Callable[[str, Any], None]] = None,
         concurrency: int = 1,
         poll_interval: float = 2.0,
+        # convenience aliases used by scripts and tests
+        node_id: Optional[str] = None,
+        queue_name: Optional[str] = None,  # noqa: F841 (stored for informational use)
+        execute_fn: Optional[Callable] = None,
     ) -> None:
         self.info = NodeInfo(
-            node_id=str(uuid.uuid4()),
+            node_id=node_id or str(uuid.uuid4()),
             hostname=platform.node(),
             worker_type=worker_type,
         )
         self._queue = queue_adapter
+        self._queue_name = queue_name
         self._router = execution_router
+        self._execute_fn = execute_fn
         self._callback = task_callback
         self._concurrency = concurrency
         self._poll_interval = poll_interval
         self._sem = asyncio.Semaphore(concurrency)
         self._running = False
         self._tasks: List[asyncio.Task[None]] = []
+
+    @property
+    def node_id(self) -> str:
+        return self.info.node_id
+
+    async def _execute_one(self, task: Dict[str, Any]) -> Any:
+        """Public single-task execution entry-point (used by scripts & tests)."""
+        if self._execute_fn is not None:
+            return await self._execute_fn(task)
+        return await self._run_task(task)
 
     async def start(self) -> None:
         self._running = True
@@ -115,17 +131,42 @@ class WorkerNode:
 
     async def _poll_loop(self) -> None:
         while self._running:
+            # Wait for a concurrency slot before dequeueing the next task so
+            # we don't pull work we cannot immediately start.
+            await self._sem.acquire()
             task = await self._dequeue()
             if task is None:
+                self._sem.release()
                 await asyncio.sleep(self._poll_interval)
                 continue
-            async with self._sem:
-                await self._execute(task)
+            # Dispatch execution as an independent task so the poll loop can
+            # immediately cycle back and dequeue the next item.
+            asyncio.create_task(self._dispatch(task))
 
     async def _heartbeat_loop(self) -> None:
         while self._running:
             self.info.last_heartbeat = time.time()
             await asyncio.sleep(10)
+
+    async def _dispatch(self, task: Dict[str, Any]) -> None:
+        """Run *task* then release the concurrency semaphore."""
+        try:
+            await self._execute(task)
+        finally:
+            self._sem.release()
+
+    async def _run_task(self, task: Dict[str, Any]) -> Any:
+        """Execute via router or execute_fn; return result."""
+        if self._execute_fn is not None:
+            return await self._execute_fn(task)
+        if self._router:
+            return await self._router.route(
+                action=task.get("action", "run_command"),
+                payload=task.get("payload", {}),
+                timeout=float(task.get("timeout", 120)),
+            )
+        await asyncio.sleep(0.1)
+        return {"status": "dry_run"}
 
     async def _dequeue(self) -> Optional[Dict[str, Any]]:
         if self._queue is None:
@@ -142,15 +183,7 @@ class WorkerNode:
         self.info.status = NodeStatus.BUSY
         self.info.current_task = task_id
         try:
-            if self._router:
-                result = await self._router.route(
-                    action=task.get("action", "run_command"),
-                    payload=task.get("payload", {}),
-                    timeout=float(task.get("timeout", 120)),
-                )
-            else:
-                await asyncio.sleep(0.1)
-                result = {"status": "dry_run"}
+            result = await self._run_task(task)
             self.info.tasks_completed += 1
             if self._callback:
                 self._callback(task_id, result)

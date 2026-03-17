@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import Any, Dict, List, Optional
 
 from .worker_node import WorkerNode
@@ -43,6 +44,10 @@ class WorkerManager:
         self._queue = queue_adapter
         self._router = execution_router
         self._workers: List[WorkerNode] = []
+        # lightweight registry for manually registered worker metadata
+        self._registry: Dict[str, Dict[str, Any]] = {}
+
+    # ── lifecycle ─────────────────────────────────────────────────────────────
 
     async def start(self) -> None:
         """Start the initial pool of workers."""
@@ -93,9 +98,30 @@ class WorkerManager:
     def status(self) -> List[Dict[str, Any]]:
         return [w.status() for w in self._workers]
 
+    # ── manual registry (for external workers / tests) ────────────────────────
+
+    def register(self, worker_id: str, info: Dict[str, Any]) -> None:
+        """Register an external worker by ID (does not start a WorkerNode)."""
+        self._registry[worker_id] = info
+        log.debug("registered worker %s", worker_id)
+
+    def deregister(self, worker_id: str) -> bool:
+        """Deregister a previously registered worker. Returns True if found."""
+        if worker_id in self._registry:
+            del self._registry[worker_id]
+            log.debug("deregistered worker %s", worker_id)
+            return True
+        return False
+
+    def list_workers(self) -> Dict[str, Dict[str, Any]]:
+        """Return all registered workers (registry + managed nodes)."""
+        result = dict(self._registry)
+        for w in self._workers:
+            result[w.node_id] = w.status()
+        return result
+
     def unhealthy(self) -> List[str]:
         """Return node IDs that have not sent a heartbeat in 30 s."""
-        import time
         threshold = time.time() - 30
         return [
             w.info.node_id

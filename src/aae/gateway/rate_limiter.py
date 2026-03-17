@@ -62,9 +62,12 @@ class RateLimiter:
         capacity: float = 60.0,
         refill_rate: float = 1.0,
         max_buckets: int = 10_000,
+        # convenience aliases
+        rate: Optional[float] = None,
+        burst: Optional[float] = None,
     ) -> None:
-        self.capacity = capacity
-        self.refill_rate = refill_rate
+        self.capacity = burst if burst is not None else capacity
+        self.refill_rate = rate if rate is not None else refill_rate
         self.max_buckets = max_buckets
         self._buckets: Dict[str, Bucket] = {}
         self._access_order: list[str] = []
@@ -76,6 +79,10 @@ class RateLimiter:
         if not allowed:
             log.warning("rate limit hit for identity=%s", identity[:16])
         return allowed
+
+    def check(self, identity: str, cost: float = 1.0) -> bool:
+        """Alias for :meth:`allow`."""
+        return self.allow(identity, cost)
 
     def remaining(self, identity: str) -> float:
         """Return approximate remaining tokens for *identity*."""

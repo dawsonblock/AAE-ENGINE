@@ -89,8 +89,9 @@ class StaticAnalyzer:
         ]
         self._use_bandit = use_bandit
 
-    def scan_file(self, path: Path) -> AnalysisResult:
+    def scan_file(self, path: Path | str) -> AnalysisResult:
         """Scan a single Python file and return findings."""
+        path = Path(path)
         result = AnalysisResult(files_scanned=1)
         try:
             source = path.read_text(encoding="utf-8", errors="replace")
@@ -112,6 +113,34 @@ class StaticAnalyzer:
         if self._use_bandit:
             combined.findings.extend(self._run_bandit(root))
         return combined
+
+    def _run_bandit(self, root: Path) -> List[Finding]:
+        """Run bandit on *root* and return findings (best-effort)."""
+        try:
+            import subprocess
+            import json as _json
+            result = subprocess.run(
+                ["bandit", "-r", str(root), "-f", "json", "-q"],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            data = _json.loads(result.stdout or "{}")
+            findings: List[Finding] = []
+            for issue in data.get("results", []):
+                findings.append(Finding(
+                    rule_id=issue.get("test_id", "B000"),
+                    severity=issue.get("issue_severity", "medium").lower(),
+                    file=issue.get("filename", ""),
+                    line=issue.get("line_number", 0),
+                    message=issue.get("issue_text", ""),
+                    code_snippet=issue.get("code", "").strip(),
+                    cwe=issue.get("issue_cwe", {}).get("id"),
+                ))
+            return findings
+        except Exception as exc:
+            log.debug("bandit run failed: %s", exc)
+            return []
 
     def _pattern_scan(
         self, path: Path, source: str, lines: List[str]
@@ -172,31 +201,4 @@ class StaticAnalyzer:
                                 )
         return findings
 
-    def _run_bandit(self, root: Path) -> List[Finding]:
-        try:
-            import subprocess
-            result = subprocess.run(
-                ["bandit", "-r", str(root), "-f", "json", "-q"],
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-            import json
-            data = json.loads(result.stdout or "{}")
-            findings = []
-            for item in data.get("results", []):
-                findings.append(
-                    Finding(
-                        rule_id=item.get("test_id", "B000"),
-                        severity=item.get("issue_severity", "medium").lower(),
-                        file=item.get("filename", ""),
-                        line=item.get("line_number", 0),
-                        message=item.get("issue_text", ""),
-                        code_snippet=item.get("code", ""),
-                        cwe=item.get("issue_cwe", {}).get("id"),
-                    )
-                )
-            return findings
-        except Exception as exc:
-            log.debug("bandit scan failed: %s", exc)
-            return []
+
