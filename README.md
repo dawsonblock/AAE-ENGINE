@@ -82,6 +82,16 @@ graph TD
 | **`src/aae/sandbox`** | Dockerized execution with Git-based snapshotting. |
 | **`src/aae/agents`** | Core micro-agent implementations (Orchestrators, Judges). |
 | **`src/aae/contracts`** | Pydantic models defining the cross-system protocol. |
+| **`src/aae/autonomous_patch_generation`** | Context assembly, patch generation, simulation, and scoring. |
+| **`src/aae/repository_intelligence`** | File parsing, symbol/dependency extraction, and query engine. |
+| **`src/aae/research_engine`** | Document parsing, insight extraction, and web/arxiv retrieval. |
+| **`src/aae/security_analysis`** | Static analysis, attack graph, dependency scan, and remediation. |
+| **`src/aae/events`** | Event bus, durable event store, and event replay. |
+| **`src/aae/cluster`** | Worker pool, load balancer, and task distributor. |
+| **`src/aae/gateway`** | API auth, rate limiting, and request routing. |
+| **`src/aae/integrations`** | Deep-integration bridges (OpenViking, SimpleMem, AgentShield). |
+| **`src/aae/storage`** | Artifact store, Redis and Postgres KV adapters. |
+| **`docs/`** | Architecture guide, upgrade history, and integration notes. |
 
 ---
 
@@ -150,7 +160,7 @@ python -m aae.localization.localization_service \
 
 ## Contributing
 
-We welcome contributions! Please see our [Development Notes](./docs/DEVELOPMENT.md) for architecture details and linting standards.
+We welcome contributions! See [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) for architecture details, linting standards, and how to add new subsystems.
 
 ---
 
@@ -175,7 +185,7 @@ If you are new to this repo, read in this order:
 If you want the original future-state design context:
 
 1. this README
-2. [`FULL UPGRADE PLAN.txt`](./FULL%20UPGRADE%20PLAN.txt)
+2. [`docs/FULL_UPGRADE_PLAN.md`](./docs/FULL_UPGRADE_PLAN.md)
 
 ## License
 
