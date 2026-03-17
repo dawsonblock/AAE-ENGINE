@@ -19,7 +19,7 @@ class ASTRepairEngine:
                     "mutation_type": mutation.mutation_type,
                     "file": file_path,
                     "content": new_code,
-                    "changes": len(new_code),
+                    "content_length": len(new_code),
                     "files_modified": 1,
                 })
 
