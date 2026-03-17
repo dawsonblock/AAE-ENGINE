@@ -8,7 +8,8 @@ class MultiParser:
                 "python": Language(lib_path, "python"),
                 "javascript": Language(lib_path, "javascript"),
             }
-        except Exception:
+        except Exception as e:
+            print(f"Warning: could not load tree-sitter languages: {e}")
             self.languages = {}
 
     def parse(self, code: str, lang: str):
